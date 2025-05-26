@@ -3,7 +3,7 @@
 GATTCR: A Graph Attention Network with Multi-Feature Fusion for Peripheral Blood TCR Repertoire Classification
 ------------------------------
 
-## Usage
+## Instructions
 
 ### Clone the repository
 git clone https://github.com/shiipl/AntiBinder.git
