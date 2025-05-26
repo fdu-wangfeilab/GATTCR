@@ -3,6 +3,13 @@
 GATTCR: A Graph Attention Network with Multi-Feature Fusion for Peripheral Blood TCR Repertoire Classification
 ------------------------------
 
+## Introduction
+
+
+<p float="left">
+  <img src="4_13.png" width="781" height="646"/>
+</p>
+
 ## Instructions
 
 ### Clone the repository
