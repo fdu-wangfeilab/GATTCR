@@ -7,7 +7,7 @@ GATTCR: A Graph Attention Network with Multi-Feature Fusion for Peripheral Blood
 
 
 <p float="left">
-  <img src="main/4_13.png" width="781" height="646"/>
+  <img src="./Results/4_13.png" width="781" height="646"/>
 </p>
 
 ## Instructions
