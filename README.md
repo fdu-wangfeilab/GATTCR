@@ -4,7 +4,7 @@ GATTCR: A Graph Attention Network with Multi-Feature Fusion for Peripheral Blood
 ------------------------------
 
 ## Introduction
-
+GATTCR is a graph-based deep learning framework designed for T-cell receptor (TCR) repertoire classification from peripheral blood samples. It integrates Graph Attention Networks (GATs) with multi-feature fusion—including sequence embeddings (via TCR-BERT), clonal frequency, and V gene usage—to model complex inter-clonal relationships and immune signatures. This method achieves state-of-the-art performance on various cancer and infection datasets (e.g., CMV, COVID-19, THCA), and maintains strong few-shot generalization on unseen disease cohorts. GATTCR offers a scalable, non-invasive approach to immune state classification and holds promise for applications in early disease detection and personalized immunotherapy.
 
 <p float="left">
   <img src="./Results/4-13.png"/>
