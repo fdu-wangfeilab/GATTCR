@@ -13,7 +13,7 @@ GATTCR: A Graph Attention Network with Multi-Feature Fusion for Peripheral Blood
 ## Instructions
 
 ### Clone the repository
-git clone https://github.com/shiipl/AntiBinder.git
+git clone https://github.com/juhengwei/GATTCR.git
 
 ### Install dependencies
 pip install -r requirements.txt
