@@ -52,15 +52,15 @@ Then, we can use the Python script `./Codes/caRepertoire_prediction.py` to make 
 python ./Codes/caRepertoire_prediction.py --network GATTCR --mode 0 --sample_dir ./Data/Geneplus/THCA/0/ --aa_file ./Data/AAidx_PCA.txt --model_file ./Models/Geneplus/THCA/GATTCR_THCA_test0.pth --record_file ./Results/GATTCR_THCA_test0.tsv
 ```
 
-The metrics, accuracy, sensitivity, specificity, Matthews correlation coefficient (MCC), area under the receiver operating characteristic (ROC) curve (AUC) and area under the precision-recall curve (AUPR) , are calculated and printed as: 
+The metric are calculated and printed as: 
 
 ```
-Accuracy =  0.7017543859649122
-Sensitivity =  0.7222222222222222
-Specificity =  0.6666666666666666
-MCC =  0.37994771924604226
-AUC =  0.701058201058201
-AUPR =  0.6998565729439137
+ACC = 0.899 ± 0.009
+RECALL = 0.884 ± 0.012
+SPECIFICITY = 0.912 ± 0.015
+MCC = 0.797 ± 0.017
+AUC = 0.964 ± 0.005
+AUPR = 0.955 ± 0.009
 ```
 
 #### Training
