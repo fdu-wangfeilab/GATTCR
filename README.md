@@ -46,31 +46,61 @@ CAWGWTGGTYEQYF  TRBV30*05   0.019363
 
 #### Prediction
 
+Modify the .npy path at #592 to save the distance matrix of the test set in ./Codes/caRepertoire_prediction.py.
+
+Pass the TCRBert model path at line #3644 to load the TCRBert model in ./Codes/network_test_fold.py.
+
 Then, we can use the Python script `./Codes/caRepertoire_prediction.py` to make predictions on the sample set 0 `./Data/Geneplus/THCA/0/` using the pre-trained model by this command:
 
 ```
-python ./Codes/caRepertoire_prediction.py --network GATTCR --mode 0 --sample_dir ./Data/Geneplus/THCA/0/ --aa_file ./Data/AAidx_PCA.txt --model_file ./Models/Geneplus/THCA/GATTCR_THCA_test0.pth --record_file ./Results/GATTCR_THCA_test0.tsv
+python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 0 --sample_dir ./Data/Geneplus/THCA/test --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_5_fold_0603.pth --record_file ./other/caTCR_THCA_test.pth_overlap.tsv
 ```
 
 The metric are calculated and printed as: 
 
 ```
-ACC = 0.899 ± 0.009
-RECALL = 0.884 ± 0.012
-SPECIFICITY = 0.912 ± 0.015
-MCC = 0.797 ± 0.017
-AUC = 0.964 ± 0.005
-AUPR = 0.955 ± 0.009
+ACC = 0.933 ± 0.023
+RECALL = 0.978 ± 0.020
+SPECIFICITY = 0.898 ± 0.037
+MCC = 0.869 ± 0.043
+AUC = 0.989 ± 0.005
+AUPR = 0.985 ± 0.006
 ```
 
 #### Training
 
-Users can use the Python script `./Codes/caRepertoire_prediction.py` to train their own GATTCR models on their TCR-sequencing data samples for a better prediction performance. For example, we can train the model on the THCA sample sets 1, 2, 3 and 4, by this command:
+Modify the .npy path at #729 to save the distance matrix of the training set in ./Codes/caRepertoire_prediction.py.
+
+Pass the TCRBert model path at line #3454 to load the TCRBert model in ./Codes/network_test_fold.py.
+
+Then users can use the Python script `./Codes/caRepertoire_prediction.py` to train their own GATTCR models on their TCR-sequencing data samples for a better prediction performance. For example, we can train the model on the THCA sample sets 1, 2, 3 and 4, by this command:
 
 ```
-python ./Codes/caRepertoire_prediction.py --network GATTCR --mode 1 --sample_dir ['./Data/Geneplus/THCA/1/','./Data/Geneplus/THCA/2/','./Data/Geneplus/THCA/3/','./Data/Geneplus/THCA/4/'] --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/GATTCR_THCA_test0.pth
+python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 1 --sample_dir "['./Data/Geneplus/THCA/train/']" --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_5_fold_0603.pth
 ```
 
 After the training process, the final model can be found in `./Results/Geneplus/THCA/GATTCR_THCA_test0.pth`
+
+#### Ablation Studies
+
+##### Receptor Count Selection
+
+###### Training:
+
+Modify the --tcr_num parameter to 100, 200, 300, and 400 in ./Codes/train_test_fold.py.
+
+```
+python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 1 --sample_dir "['./Data/Geneplus/THCA/train/']" --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_num_100_5_fold_0606.pth
+```
+
+###### Predicting
+```
+python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 0 --sample_dir ./Data/Geneplus/THCA/test --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_num_100_5_fold_0606.pth
+```
+
+##### Number of GAT Layers
+
+
+
 
 
