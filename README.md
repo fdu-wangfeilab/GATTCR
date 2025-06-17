@@ -50,7 +50,7 @@ Modify the .npy path at #592 to save the distance matrix of the test set in ./Co
 
 Pass the TCRBert model path at line #3644 to load the TCRBert model in ./Codes/network_test_fold.py.
 
-Then, we can use the Python script `./Codes/caRepertoire_prediction.py` to make predictions on the sample set 0 `./Data/Geneplus/THCA/0/` using the pre-trained model by this command:
+Then, we can use the Python script `./Codes/train_test_fold.py` to make predictions on the sample set 0 `./Data/Geneplus/THCA/0/` using the pre-trained model by this command:
 
 ```
 python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 0 --sample_dir ./Data/Geneplus/THCA/test --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_5_fold_0603.pth --record_file ./other/caTCR_THCA_test.pth_overlap.tsv
@@ -69,11 +69,11 @@ AUPR = 0.985 ± 0.006
 
 #### Training
 
-Modify the .npy path at #729 to save the distance matrix of the training set in ./Codes/caRepertoire_prediction.py.
+Modify the .npy path at #729 to save the distance matrix of the training set in ./Codes/train_test_fold.py.
 
 Pass the TCRBert model path at line #3454 to load the TCRBert model in ./Codes/network_test_fold.py.
 
-Then users can use the Python script `./Codes/caRepertoire_prediction.py` to train their own GATTCR models on their TCR-sequencing data samples for a better prediction performance. For example, we can train the model on the THCA sample sets 1, 2, 3 and 4, by this command:
+Then users can use the Python script `./Codes/train_test_fold.py` to train their own GATTCR models on their TCR-sequencing data samples for a better prediction performance. For example, we can train the model on the THCA sample sets 1, 2, 3 and 4, by this command:
 
 ```
 python ./Codes/train_test_fold.py --network Mulgat_vgene_fusion_freq --mode 1 --sample_dir "['./Data/Geneplus/THCA/train/']" --aa_file ./Data/AAidx_PCA.txt --model_file ./Results/THCA_5_fold_0603.pth
