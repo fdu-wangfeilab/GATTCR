@@ -19,16 +19,12 @@ boto3==1.28.63
 botocore==1.31.63
 bravado==11.0.3
 bravado-core==6.1.0
-Brotli @ file:///work/ci_py311/brotli-split_1676830125088/work
-certifi @ file:///croot/certifi_1690232220950/work/certifi
-cffi @ file:///work/ci_py311/cffi_1676822533496/work
+certifi==2023.7.22
 charset-normalizer==3.2.0
 click==8.1.7
 cmake==3.27.5
 colorama==0.4.6
 comm==0.1.4
-contourpy==1.1.1
-cryptography @ file:///croot/cryptography_1694444244250/work
 cycler==0.11.0
 datasets==2.14.6
 debugpy==1.8.0
@@ -46,19 +42,16 @@ fsspec==2023.9.2
 future==0.18.3
 gitdb==4.0.10
 GitPython==3.1.37
-gmpy2 @ file:///work/ci_py311/gmpy2_1676839849213/work
 gprofiler-official==1.0.0
 grpcio==1.67.0
 h5py==3.9.0
 huggingface-hub==0.17.3
-idna @ file:///work/ci_py311/idna_1676822698822/work
 igraph==0.10.8
 importlib-metadata==6.8.0
 ipykernel==6.25.2
 ipython==8.15.0
 isoduration==20.11.0
 jedi==0.19.0
-Jinja2 @ file:///work/ci_py311/jinja2_1676823587943/work
 jmespath==1.0.1
 joblib==1.3.2
 jsonpointer==2.4
@@ -71,17 +64,16 @@ kiwisolver==1.4.5
 leidenalg==0.10.1
 Levenshtein==0.21.1
 lit==16.0.6
-llvmlite==0.40.1
+llvmlite==0.42.0
 lmdb==1.5.1
 Markdown==3.7
 MarkupSafe==2.1.3
 matplotlib==3.8.0
 matplotlib-inline==0.1.6
-mkl-fft @ file:///croot/mkl_fft_1695058164594/work
-mkl-random @ file:///croot/mkl_random_1695059800811/work
-mkl-service==2.4.0
+mkl-fft==1.3.14
+mkl-random==2.0.0
+mkl-service==2.4.1
 monotonic==1.6
-mpmath @ file:///croot/mpmath_1690848262763/work
 msgpack==1.0.7
 mudata==0.2.3
 multidict==6.0.4
@@ -90,9 +82,8 @@ mygene==3.2.2
 natsort==8.4.0
 neptune==1.8.2
 nest-asyncio==1.5.8
-networkx @ file:///croot/networkx_1690561992265/work
-numba==0.57.1
-numpy==1.24.0
+numba==0.59
+numpy==1.26.4
 nvidia-cublas-cu11==11.10.3.66
 nvidia-cublas-cu12==12.1.3.1
 nvidia-cuda-cupti-cu11==11.7.101
@@ -125,7 +116,6 @@ pathtools==0.1.2
 patsy==0.5.3
 pexpect==4.8.0
 pickleshare==0.7.5
-Pillow @ file:///croot/pillow_1696580024257/work
 platformdirs==3.10.0
 pooch==1.7.0
 prompt-toolkit==3.0.39
@@ -135,14 +125,11 @@ ptyprocess==0.7.0
 pure-eval==0.2.2
 pyani==0.2.12
 pyarrow==13.0.0
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
 pydot==1.4.2
 Pygments==2.16.1
 PyJWT==2.8.0
 pynndescent==0.5.10
-pyOpenSSL @ file:///croot/pyopenssl_1690223430423/work
 pyparsing==3.1.1
-PySocks @ file:///work/ci_py311/pysocks_1676822712504/work
 python-dateutil==2.8.2
 python-igraph==0.10.8
 python-Levenshtein==0.21.1
@@ -153,7 +140,6 @@ pyzmq==25.1.1
 rapidfuzz==3.3.0
 referencing==0.30.2
 regex==2023.10.3
-requests @ file:///croot/requests_1690400202158/work
 requests-oauthlib==1.3.1
 rfc3339-validator==0.1.4
 rfc3987==1.3.8
@@ -183,7 +169,7 @@ statsmodels==0.14.0
 stdlib-list==0.9.0
 stua==0.3
 swagger-spec-validator==3.0.3
-sympy @ file:///work/ci_py311_2/sympy_1679339311852/work
+sympy==1.10
 tabulate==0.9.0
 tape-proteins==0.5
 tbb==2021.10.0
@@ -195,29 +181,27 @@ threadpoolctl==3.2.0
 timm==0.9.10
 tokenizers==0.14.1
 torch==2.0.1
-torch-scatter==2.1.2+pt20cu117
+torch-scatter==2.1.2
 torch_geometric==2.5.3
 torchaudio==2.0.2
 torchdata==0.6.1
 torchtext==0.15.2
-torchvision==0.15.2+cu117
+torchvision==0.15.2
 tornado==6.3.3
 tqdm==4.66.1
 traitlets==5.10.0
 transformers==4.34.0
 triton==2.0.0
 types-python-dateutil==2.8.19.14
-typing_extensions @ file:///croot/typing_extensions_1690297465030/work
 tzdata==2023.3
 umap-learn==0.5.4
 uri-template==1.3.0
-urllib3==2.0.4
+urllib3==1.26.11
 wandb==0.15.12
 wcwidth==0.2.6
 webcolors==1.13
 websocket-client==1.6.4
 Werkzeug==3.0.4
-widis-lstm-tools @ git+https://github.com/widmi/widis-lstm-tools@d94edfc854477cca6f492d4c0abc37c7fd70667b
 wrapt==1.15.0
 xxhash==3.4.1
 yamlordereddictloader==0.4.0
