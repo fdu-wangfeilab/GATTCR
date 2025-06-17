@@ -1,12 +1,3 @@
-# -------------------------------------------------------------------------
-# Name: caRepertoire_prediction_bert.py
-# Coding: utf8
-# Author: 
-# Intro: Train and test the models for predicting caRepertoires.
-# 将CNN换成Bert预训练模型，同时将MIL部分的注意力机制换成图注意力网络
-# 输入：节点特征 + 距离矩阵
-# 关键：GAT网络的搭建
-# -------------------------------------------------------------------------
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
@@ -81,7 +72,7 @@ def create_parser():
         dest="tcr_num",
         type=int,
         help="The number of TCRs in each sample.",
-        default=400,
+        default=300,
     )
     parser.add_argument(
         "--epoch",
@@ -206,8 +197,6 @@ def record_prediction(tcrs, probs, save_filename, sort_scores=False):
     print("The prediction results have been recorded to {}!".format(save_filename))
     return 0
 
-
-# 对输入的TCR序列按照caTCR_score进行排序和过滤
 def filter_sequence(tcrs, tcr_num, ind=-1):
     tcrs = sorted(tcrs, key=lambda x: float(x[ind]), reverse=True)
     if len(tcrs) > tcr_num:
@@ -235,7 +224,6 @@ def get_mask_matrix(tcrs, tcr_num, ratio, ind=-1):
     return mask_matrix
 
 
-# 从给定的目录（或目录列表）中读取样本文件，根据文件名确定样本的标签（正面或负面），并对数据进行预处理
 def read_samples(sp_dir, tcr_num, filter_seq, mask_ratio):
     # Get data.
     sp_names = []
@@ -254,26 +242,26 @@ def read_samples(sp_dir, tcr_num, filter_seq, mask_ratio):
         for sp in os.listdir(d):
             # print(f"sp:{sp}")
             if sp.find("negative") != -1:
-                labels.append(0) # 根据文件名确定标签为0或1
+                labels.append(0)
             elif sp.find("positive") != -1:
                 labels.append(1)
             else:
                 jump_sum += 1
                 continue
             sp_names.append(sp)
-            # sp = d + sp # 每个样本文件的完整路径
+            # sp = d + sp
             sp = os.path.join(d, sp)
             # sp = utils.read_tsv(sp, [3, 1, 2, 4], True)
-            sp = utils.read_tsv(sp, [0, 1, 2, 3], True) # n x m的矩阵，其中n是文件中符合条件行的数量，m是inf_ind列表的长度
-            # sp = utils.read_csv(sp, [0, 2, 1, 3]) # cmv数据
-            # sp = sp[1:]  # 移除标题行，CMV数据
+            sp = utils.read_tsv(sp, [0, 1, 2, 3], True)
+            # sp = utils.read_csv(sp, [0, 2, 1, 3])
+            # sp = sp[1:]
             # print(f"filter_seq: {filter_seq}")
             # print(sp[0])
             if filter_seq:
-                sp = filter_sequence(sp, tcr_num) # 对输入的TCR序列按照caTCR_score进行排序和过滤
-            sp = sorted(sp, key=lambda x: float(x[2]), reverse=True) # 按照频率进行排序
+                sp = filter_sequence(sp, tcr_num) 
+            sp = sorted(sp, key=lambda x: float(x[2]), reverse=True)
             if len(sp) > tcr_num:
-                sp = sp[: tcr_num] # 如果没有按照caTCR_score进行过滤，这里就会按照频率进行过滤
+                sp = sp[: tcr_num]
             if mask_ratio > 0:
                 temp_mask_mat = get_mask_matrix(sp, tcr_num, mask_ratio)
                 mask_mat.append(temp_mask_mat)
@@ -326,7 +314,7 @@ def read_samples_tyh(sp_dir):
     return sps,save_labels_index,sp_names,mask_mat
 
 from tqdm import tqdm
-# 计算每个样本的距离矩阵，将在gat中用到
+
 def cal_distmat(sps, chunk_size, chunk_num, distance_function, cores=16):
     """
     Calculate the distance matrix for a given list of sequences and specified distance function.
@@ -338,23 +326,21 @@ def cal_distmat(sps, chunk_size, chunk_num, distance_function, cores=16):
     - distance_option: The type of distance function to use.
     - cores: Number of cores to use for parallel processing.
     """
-    start_overall_time = time.time() # 记录时间
+    start_overall_time = time.time()
     
     # Select the appropriate distance function based on the distance option
-    # distance_function = choose_distance_function(distance_option) # 函数未定义
+    # distance_function = choose_distance_function(distance_option)
     dis_mat = []
     total_samples = len(sps)
-    # 循环遍历每个样本
     for sp in tqdm(sps, desc="Processing samples", total=total_samples):
         seqs = []
         for i in range(len(sp)):
-            seqs.append(sp[i][0]) # 取出样本中的每条序列
+            seqs.append(sp[i][0])
 			
-		# 计算每个样本的距离矩阵
         # Split data into chunks
         # print(f"######################chunk_num:{chunk_num}")
         # print(f"list:{list(chunks(seqs, chunk_size))}#########################")
-        cdr3_chunk = list(chunks(seqs, chunk_size))[chunk_num] # 函数未定义 报错
+        cdr3_chunk = list(chunks(seqs, chunk_size))[chunk_num]
         # print(cdr3_chunk)
 
         # Start parallel computation
@@ -390,7 +376,6 @@ def cal_distmat(sps, chunk_size, chunk_num, distance_function, cores=16):
     
     return dis_mat
 
-# 计算距离矩阵或直接读取
 def get_dist_mat(samples, file_path):
     if os.path.exists(file_path):
         print(f"Load dist mat...")
@@ -409,7 +394,6 @@ def get_full_dist_mat(samples, tcr_num, file_path, force_recompute=False):
         np.save(file_path, dist_mat)
         return dist_mat
 
-# 计算样本中所有TCR的距离矩阵，将每个距离矩阵保存为一个.tsv文件
 def cal_distmat_all(sps, chunk_size, chunk_num, distance_function, cores=4):
     """
     Calculate the distance matrix for a given list of sequences and specified distance function.
@@ -421,21 +405,20 @@ def cal_distmat_all(sps, chunk_size, chunk_num, distance_function, cores=4):
     - distance_option: The type of distance function to use.
     - cores: Number of cores to use for parallel processing.
     """
-    start_overall_time = time.time() # 记录时间
+    start_overall_time = time.time()
     
     # Select the appropriate distance function based on the distance option
-    # distance_function = choose_distance_function(distance_option) # 函数未定义
+    # distance_function = choose_distance_function(distance_option)
     dis_mat = []
-    # 循环遍历每个样本
+
     for sp in sps:
         seqs = []
         for i in range(len(sp)):
-            seqs.append(sp[i][0]) # 取出样本中的每条序列
+            seqs.append(sp[i][0]) 
 			
-		# 计算每个样本的距离矩阵
         # Split data into chunks
     
-        cdr3_chunk = list(chunks(seqs, chunk_size))[chunk_num] # 函数未定义
+        cdr3_chunk = list(chunks(seqs, chunk_size))[chunk_num]
         # print(cdr3_chunk)
 
         # Start parallel computation
@@ -471,9 +454,6 @@ def cal_distmat_all(sps, chunk_size, chunk_num, distance_function, cores=4):
     
     return dis_mat
 
-"""
-    下面这些是计算距离矩阵用到的函数
-"""
 def choose_distance_function(dist_option): 
 	if dist_option == "AF_euclidean": 
 		dist_func = Atchley_euclidean_dist
@@ -555,14 +535,14 @@ def levenshteinDistance(s1, s2):
 	return distances[-1]
 
 def BLOSUM45_score_dist(s1,s2):
-	aligner = Align.PairwiseAligner() # 创建一个用于进行配对序列比对的 PairwiseAligner 对象。
-	aligner.open_gap_score = -10 # 设定了打开一个缺口（即插入一个间隔）时的分数为 -10。这是一个惩罚分数，用于减少因插入过多间隔而得到不切实际比对结果的可能性
-	aligner.substitution_matrix = substitution_matrices.load("BLOSUM45") # 指定了用于比对时的替换矩阵。BLOSUM45是一种常用的替换矩阵，特别适用于相似性较低（约45%）的蛋白质序列比对。
-	aligner.mode = "global" # 设置比对模式为全局比对（global alignment），即尝试比对输入序列的全部长度。
-	score_s12 = aligner.score(s1,s2) # 计算两个序列 s1 和 s2 的全局比对分数
-	score11 = aligner.score(s1,s1) # 计算序列 s1 与其自身的比对分数，这通常会提供该序列可达到的最高分数
-	score22 = aligner.score(s2,s2) # 计算序列 s2 与其自身的比对分数
-	distance = 1- score_s12/max(score11,score22) # 通过这个公式计算归一化距离
+	aligner = Align.PairwiseAligner()
+	aligner.open_gap_score = -10 
+	aligner.substitution_matrix = substitution_matrices.load("BLOSUM45") 
+	aligner.mode = "global" 
+	score_s12 = aligner.score(s1,s2) 
+	score11 = aligner.score(s1,s1)
+	score22 = aligner.score(s2,s2) 
+	distance = 1- score_s12/max(score11,score22)
 	return distance
 
 def chunks(l, n):
@@ -576,8 +556,6 @@ def dist_i_list_parallel(cdr3i, cdr3s_list, distance_function_used):
 
 distance_function = choose_distance_function("BLOSUM45_score_dist")
 
-# **************************************************************************************************************
-# 创建一个V基因到整数标签的映射字典
 def create_v_gene_mapping(v_gene_list):
     v_gene_dict = {v_gene: idx for idx, v_gene in enumerate(set(v_gene_list))}
     v_gene_dict['<UNK>'] = len(v_gene_dict)  # Add <UNK> token
@@ -588,7 +566,7 @@ def create_v_gene_mapping(v_gene_list):
 def test_model(net, sps_dir, aa_f, model_f, tcr_num, device, filter_seq, record_r, mask_ratio):
     # Get data.
     test_sps, test_labels, test_spnames, test_mask = read_samples(sps_dir, tcr_num, filter_seq, mask_ratio)
-    # 进行五折交叉验证的测试
+
     test_dist_mat_file = '/home/juhengwei/GAT_all/tcr-bert/GATTCR/test_dist_mat/CMV_num_400_test_dist_mat_300.npy'
     # dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
     dist_mat_test = get_full_dist_mat(test_sps, tcr_num=tcr_num, file_path=test_dist_mat_file)
@@ -632,93 +610,6 @@ def test_model(net, sps_dir, aa_f, model_f, tcr_num, device, filter_seq, record_
     for metric, values in metric_lists.items():
         values_np = np.array(values)
         print(f"{metric.upper()} = {values_np.mean():.3f} ± {values_np.std():.3f}")
-    # # 加载v_gene_dict
-    # # with open('/mnt/sdb/juhengwei/PDAC_286/Processed_PBMC/raw_data_PBMC/v_gene_dict.json', 'r') as f:
-    # #     v_gene_dict = json.load(f)
-    # v_gene_path = model_f.replace(".pth", "_v_gene_dict.pkl")
-    # if not os.path.exists(v_gene_path):
-    #     raise FileNotFoundError(f"v_gene_dict file not found at: {v_gene_path}")
-    # with open(v_gene_path, "rb") as f:
-    #     v_gene_dict = pickle.load(f)
-    # print(f"[Info] Loaded v_gene_dict from {v_gene_path}, total {len(v_gene_dict)} entries")
-
-    # # 预测
-    # # probs = Mulgat_vgene_fusion_freq.prediction(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    # probs = Mulgat_vgene_fusion_freq.prediction_with_umap(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    # # print(probs)    
-    # utils.evaluation(probs, test_labels)
-    # print(net)
-    # Make predictions.
-
-    # # 
-    # if net == "DeepLION":
-    #     probs = DeepLION.prediction(test_sps, model_f, aa_f, tcr_num, device)
-    # elif net == "TransMIL":
-    #     probs = TransMIL.prediction(test_sps, model_f, aa_f, tcr_num, device, test_mask)
-    # elif net == "BiFormer":
-    #     probs = BiFormer.prediction(test_sps, model_f, aa_f, tcr_num, device)
-    # elif net == "DeepLION2":
-    #     probs = DeepLION2.prediction(test_sps, model_f, aa_f, tcr_num, device)
-    # elif net == "DeepLION2_bert":
-    #     probs = DeepLION2_bert.prediction(test_sps, model_f, aa_f, tcr_num, device)
-    # elif net == "MINN_SA":
-    #     probs = MINN_SA.prediction(test_sps, model_f, aa_f, tcr_num, device)
-    # elif net == "TCR_mulgat_fre":
-    #     # 计算距离矩阵
-    #     test_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/Covid19_unresolved/test_dist_mat_300.npy'
-    #     dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
-    #     # 预测
-    #     probs = DeepLION2_mulgat_fre.prediction(test_sps, dist_mat_test, model_f, tcr_num, device)
-        
-    # elif net == "TCR_mulgat_fre_vgene":
-
-    #     # 计算距离矩阵
-    #     test_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/CMV/test_dist_mat_300.npy'
-    #     dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
-
-    #     with open('/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/Geneplus/THCA/v_gene_dict.json', 'r') as f:
-    #         v_gene_dict = json.load(f)
-
-    #     # 预测
-    #     probs = DeepLION2_mulgat_fre_vgene.prediction(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict)
-    # elif net == "Mulgat_vgene_fusion_freq": ###主要
-    #     test_dist_mat_file = '/mnt/sdb/juhengwei/PDAC_286/Processed_PBMC/raw_data_PBMC/test_dist_mat_300.npy'
-    #     dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
-
-    #     with open('/mnt/sdb/juhengwei/PDAC_286/Processed_PBMC/raw_data_PBMC/v_gene_dict.json', 'r') as f:
-    #         v_gene_dict = json.load(f)
-    #     # 预测
-    #     # probs = Mulgat_vgene_fusion_freq.prediction(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    #     probs = Mulgat_vgene_fusion_freq.prediction_with_umap(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    #     print(probs)
-    # elif net == "Mulgat_vgene_fusion_freq_meanpooling":
-    #     test_dist_mat_file = '/home/juhengwei/GAT_all/tcr-bert/DeepLION2-main/Data/Covid19_unresolved/few_shot_unseen/test_few_shot_unseen.npy'
-    #     dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
-
-    #     with open('/home/juhengwei/GAT_all/tcr-bert/DeepLION2-main/Data/Covid19_unresolved/few_shot_unseen/few_shot_v_gene_dict_unseen.json', 'r') as f:
-    #         v_gene_dict = json.load(f)
-    #     # 预测
-    #     # probs = Mulgat_vgene_fusion_freq.prediction(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    #     probs = Mulgat_vgene_fusion_freq_meanpooling.prediction_with_umap(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    #     print(f"probs:{probs}")
-    # elif net == "Mulgat_fre_vgene_fusion":
-    #     # 计算距离矩阵
-    #     test_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/CMV/test_dist_mat_300.npy'
-    #     dist_mat_test = get_dist_mat(test_sps, test_dist_mat_file)
-
-    #     with open('/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/CMV/v_gene_dict.json', 'r') as f:
-    #         v_gene_dict = json.load(f)
-    #     # 预测
-    #     probs = Mulgat_fre_vgene_fusion.prediction(test_sps, dist_mat_test, model_f, tcr_num, device, v_gene_dict, test_labels)
-    #     print(probs)
-    # else:
-    #     print("Wrong parameter 'network' set!")
-    #     return -1
-    # # Evaluation.
-    # utils.evaluation(probs, test_labels)
-    # # Record prediction results.
-    # if record_r:
-    #     record_prediction(test_spnames, probs, record_r)
 
 
 def training_model(net, sps_dir, valid_sps_dir, tcr_num, lr, ep, dropout, log_inr, aa_f, model_f, device, loss, alpha,
@@ -727,22 +618,12 @@ def training_model(net, sps_dir, valid_sps_dir, tcr_num, lr, ep, dropout, log_in
     training_sps, training_labels, training_spnames, training_mask = read_samples(sps_dir, tcr_num, filter_seq,
                                                                                   mask_ratio)
     full_dist_mat = get_full_dist_mat(training_sps, tcr_num=tcr_num, file_path="/home/juhengwei/GAT_all/tcr-bert/GATTCR/dist_mat_data/CMV_num_400_train_full.npy")
-    # print(training_sps[0]) # 这是一个列表，列表中的每个元素代表一个样本，每个样本信息也是一个列表，共有100个元素，每个元素内容大致如下['CASSVSTGVDEQYF', 'TRBV2*01', '0.001081', '0.5489162544882538']
-    # print("*******************************************")
-    # print(training_sps[1])
-    # print(type(training_sps)) # list
-    # print(len(training_sps)) # 344，样本总数
-    # print(len(training_sps[0])) # 100，过滤后每个样本的TCR总数为100条
-    # print(f"training_sps[0][0]:{training_sps[0][1][0]}")
-    # print(f"len_labels:{len(training_labels)}")
+
     if data_balance:
         training_seqs, training_labels = utils.data_balance(training_sps, training_labels) # 平衡正负样本数量
-    # valid_sps, valid_labels, valid_spnames, valid_mask = read_samples(valid_sps_dir, tcr_num, filter_seq, mask_ratio)
 
-    # 构建统一的 v_gene_dict（KFold 前一次性构建）
     v_gene_list = [tcr[1] for sample in training_sps for tcr in sample]
     v_gene_dict = create_v_gene_mapping(v_gene_list)
-    # 保存 v_gene_dict 为文件（如不存在）
     v_gene_path = model_f.replace(".pth", "_v_gene_dict.pkl")
     if not os.path.exists(v_gene_path):
         with open(v_gene_path, "wb") as f:
@@ -756,26 +637,17 @@ def training_model(net, sps_dir, valid_sps_dir, tcr_num, lr, ep, dropout, log_in
     for fold_idx, (train_idx, val_idx) in enumerate(kf.split(training_sps)):
         print(f"\n=== Fold {fold_idx + 1} ===")
         
-        # 构造 fold 中的训练和验证子集
         train_sps = [training_sps[i] for i in train_idx]
         train_labels = [training_labels[i] for i in train_idx]
         val_sps = [training_sps[i] for i in val_idx]
         val_labels = [training_labels[i] for i in val_idx]
 
-        # train_dist_mat = get_dist_mat(train_sps, f"/home/juhengwei/GAT_all/tcr-bert/GATTCR/dist_mat_data/temp_fold{fold_idx}_train_mat.npy")
-        # val_dist_mat = get_dist_mat(val_sps, f"/home/juhengwei/GAT_all/tcr-bert/GATTCR/dist_mat_data/temp_fold{fold_idx}_val_mat.npy")
         train_dist_mat = [full_dist_mat[i] for i in train_idx]
         val_dist_mat = [full_dist_mat[i] for i in val_idx]
         
-        # v_gene_list = [tcr[1] for sample in train_sps for tcr in sample]
-        # v_gene_dict = create_v_gene_mapping(v_gene_list)
-        # val_freq = np.array([[float(tcr[2]) for tcr in sample] for sample in val_sps])
-        # val_vgene = np.array([[Mulgat_vgene_fusion_freq.v_gene_to_numeric(tcr[1], v_gene_dict) for tcr in sample] for sample in val_sps])
-        # 统一 v_gene_dict，计算 val 的 v_gene 编码和 freq 特征
         val_freq = np.array([[float(tcr[2]) for tcr in sample] for sample in val_sps])
         val_vgene = np.array([[Mulgat_vgene_fusion_freq.v_gene_to_numeric(tcr[1], v_gene_dict) for tcr in sample] for sample in val_sps])
 
-        # 记录损失
         loss, acc, auc, f1 = Mulgat_vgene_fusion_freq.training(
             sps=train_sps, 
             lbs=train_labels, 
@@ -798,151 +670,6 @@ def training_model(net, sps_dir, valid_sps_dir, tcr_num, lr, ep, dropout, log_in
         )
         fold_metrics.append((acc, auc, f1))
 
-    # print("valid_sps:", valid_sps)
-    # Training model.
-    # if net == "DeepLION":
-    #     if loss[0] == "W":
-    #         # Pretraining.
-    #         pre_ep = pretraining
-    #         pre_model_f = "models/temp.pth"
-    #         pre_loss = "CE"
-    #         DeepLION.training(training_sps, training_labels, tcr_num, lr, pre_ep, dropout, log_inr, pre_model_f, aa_f, device,
-    #                           pre_loss, alpha, beta, gce_q, shuffle=False)
-    #         probs = DeepLION.prediction(training_sps, pre_model_f, aa_f, device)
-    #         os.remove(pre_model_f)
-    #         # Calculate weights.
-    #         weights = []
-    #         for ind, prob in enumerate(probs):
-    #             weights.append(1 - abs(training_labels[ind] - prob))
-    #         # Training.
-    #         DeepLION.training(training_sps, training_labels, tcr_num, lr, ep, dropout, log_inr,
-    #                           model_f, aa_f, device, loss[1:], alpha, beta, gce_q, loss_w=weights, shuffle=False)
-    #     else:
-    #         DeepLION.training(training_sps, training_labels, tcr_num, lr, ep, dropout, log_inr,
-    #                           model_f, aa_f, device, loss, alpha, beta, gce_q)
-    # elif net == "DeepLION2_bert":
-    #     # 这是自定义的bert模型
-    #     DeepLION2_bert.training(training_sps, training_labels, tcr_num, lr, ep, dropout, log_inr, model_f, aa_f, device,
-    #                           valid_sps=valid_sps, valid_lbs=valid_labels)
-    # elif net == "TCR_gcn":
-    #     # Assuming that the distance matrix calculation is also needed for the GraphNet version
-    #     training_dist_mat_file = 'training_dist_mat.npy'
-    #     valid_dist_mat_file = 'valid_dist_mat.npy'
-    #     dist_mat = get_dist_mat(training_sps, training_dist_mat_file)
-    #     # print("valid_sps_dir:", valid_sps_dir) # None
-    #     print(len(dist_mat[0]))
-
-    #     if valid_sps_dir:
-    #         dist_mat_val = get_dist_mat(valid_sps, valid_dist_mat_file)
-    #     else:
-    #          dist_mat_val = None
-
-    #     print(f"device: {device}")
-    #     DeepLION2_GCN.training(sps=training_sps, lbs=training_labels, adjs=dist_mat, tcr_num=tcr_num, lr=lr, ep=ep, dropout=dropout, log_inr=log_inr, model_f=model_f, aa_f=aa_f, device=device, 
-    #                             valid_sps=valid_sps, valid_lbs=valid_labels, valid_mat=dist_mat_val)
-    # elif net == "TCR_mulgat_fre":
-    #     # 获取距离矩阵
-    #     training_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/Covid19_unresolved/training_dist_mat_300.npy'
-    #     valid_dist_mat_file = 'valid_dist_mat.npy'
-    #     dist_mat = get_dist_mat(training_sps, training_dist_mat_file)
-    #     # print("valid_sps_dir:", valid_sps_dir) # None
-    #     print(len(dist_mat[0]))
-    #     if valid_sps_dir:
-    #         dist_mat_val = get_dist_mat(valid_sps, valid_dist_mat_file)
-    #     else:
-    #          dist_mat_val = None
-
-    #     print(f"device: {device}")
-
-    #     # 记录损失
-    #     loss = DeepLION2_mulgat_fre.training(sps=training_sps, lbs=training_labels, adjs=dist_mat, tcr_num=tcr_num, lr=lr, ep=ep, dropout=dropout, log_inr=log_inr, model_f=model_f, aa_f=aa_f, device=device, 
-    #                                          valid_sps=valid_sps, valid_lbs=valid_labels, valid_mat=dist_mat_val)
-        
-    #     loss_path = model_f.replace('.pth', '')
-    #     loss.to_csv(loss_path + "_loss.tsv", sep='\t', index=False)
-    #     print(f"Epoch loss has been saved to {loss_path}_loss.tsv!")
-    # elif net == "TCR_mulgat_fre_vgene":
-    #     # print(f"len_div:{diversity_features_df}")
-    #     # 这里可以先计算距离矩阵
-    #     # 距离矩阵可以用一个变量保存；也可以保存成文件，后续读入文件
-    #     training_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/Geneplus/THCA/training_dist_mat_300.npy'
-    #     valid_dist_mat_file = '/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/CMV//valid_dist_mat.npy'
-    #     dist_mat = get_dist_mat(training_sps, training_dist_mat_file)
-    #     # print("valid_sps_dir:", valid_sps_dir) # None
-    #     print(len(dist_mat[0]))
-    #     if valid_sps_dir:
-    #         dist_mat_val = get_dist_mat(valid_sps, valid_dist_mat_file)
-    #     else:
-    #          dist_mat_val = None
-
-    #     print(f"device: {device}")
-    #     # DeepLION2_GAT.training(sps=training_sps, lbs=training_labels, adjs=dist_mat, tcr_num=tcr_num, lr=lr, ep=ep, dropout=dropout, log_inr=log_inr, model_f=model_f, aa_f=aa_f, device=device, 
-    #     #                        valid_sps=valid_sps, valid_lbs=valid_labels, valid_mat = dist_mat_val)
-
-    #     v_gene_list = [tcr[1] for sample in training_sps for tcr in sample]  # Extract all V gene strings
-    #     v_gene_dict = create_v_gene_mapping(v_gene_list)
-
-    #     # 保存v_gene_dict，以便在测试时使用
-    #     # 需要根据数据集不同来修改
-    #     with open('/home/cc/cc/TCR/tcr-bert/DeepLION2-main/Data/Geneplus/THCA/v_gene_dict.json', 'w') as f:
-    #         json.dump(v_gene_dict, f)
-
-    #     # 记录损失
-    #     loss = DeepLION2_mulgat_fre_vgene.training(sps=training_sps, lbs=training_labels, adjs=dist_mat, tcr_num=tcr_num, lr=lr, ep=ep, dropout=dropout, log_inr=log_inr, model_f=model_f, aa_f=aa_f, device=device, 
-    #                        v_gene_dict=v_gene_dict, valid_sps=valid_sps, valid_lbs=valid_labels, valid_mat=dist_mat_val)
-        
-    #     loss_path = model_f.replace('.pth', '')
-    #     loss.to_csv(loss_path + "_loss.tsv", sep='\t', index=False)
-    #     print(f"Epoch loss has been saved to {loss_path}_loss.tsv!")
-    # elif net == "Mulgat_vgene_fusion_freq": ###主要
-    #     # 计算距离矩阵
-    #     training_dist_mat_file = '/mnt/sdb/juhengwei/PDAC_286/Processed_PBMC/raw_data_PBMC/training_dist_mat_300.npy'
-    #     valid_dist_mat_file = '/home/juhengwei/GAT_all/tcr-bert/DeepLION2-main/Data/processed_lung_cancer/v_gene_dict1.json'
-    #     dist_mat = get_dist_mat(training_sps, training_dist_mat_file)
-    #     print(len(dist_mat[0]))
-        
-    #     if valid_sps_dir:
-    #         dist_mat_val = get_dist_mat(valid_sps, valid_dist_mat_file)
-    #     else:
-    #         dist_mat_val = None
-
-    #     print(f"device: {device}")
-
-    #     # 创建V基因映射字典
-    #     v_gene_list = [tcr[1] for sample in training_sps for tcr in sample]  # 提取所有的V基因字符串
-    #     v_gene_dict = create_v_gene_mapping(v_gene_list)
-
-    #     # 保存v_gene_dict，以便在测试时使用
-    #     with open('/mnt/sdb/juhengwei/PDAC_286/Processed_PBMC/raw_data_PBMC/v_gene_dict.json', 'w') as f:
-    #         json.dump(v_gene_dict, f)
-
-    #     # 记录损失
-    #     loss = Mulgat_vgene_fusion_freq.training(
-    #         sps=training_sps, 
-    #         lbs=training_labels, 
-    #         adjs=dist_mat, 
-    #         tcr_num=tcr_num, 
-    #         lr=lr, 
-    #         ep=ep, 
-    #         dropout=dropout, 
-    #         log_inr=log_inr, 
-    #         model_f=model_f, 
-    #         aa_f=aa_f, 
-    #         device=device, 
-    #         v_gene_dict=v_gene_dict, 
-    #         valid_sps=valid_sps, 
-    #         valid_lbs=valid_labels, 
-    #         valid_mat=dist_mat_val
-    #     )
-
-    #     loss_path = model_f.replace('.pth', '')
-    #     loss.to_csv(loss_path + "_loss.tsv", sep='\t', index=False)
-    #     print(f"Epoch loss has been saved to {loss_path}_loss.tsv!")           
-
-    # else:
-    #     print("Wrong parameter 'network' set!")
-    #     return -1
-
 def main():
     # Parse arguments.
     args = create_parser()
@@ -958,11 +685,11 @@ def main():
 
     # Execute the corresponding operation.
     if args.mode == 0:
-        # Model test. 测试模型
+        # Model test.
         test_model(args.network, args.sample_dir, args.aa_file, args.model_file, args.tcr_num,
                    args.device, args.filter_sequence, args.record_file, args.mask_ratio)
     elif args.mode == 1:
-        # Model training. 训练模型
+        # Model training.
         print(args.device)
         training_model(args.network, args.sample_dir, args.valid_sample_dir, args.tcr_num, args.learning_rate,
                        args.epoch, args.dropout, args.log_interval, args.aa_file, args.model_file, args.device,
