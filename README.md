@@ -13,7 +13,7 @@ GATTCR is a graph-based deep learning framework designed for T-cell receptor (TC
 ## Instructions
 
 ### Clone the repository
-git clone https://github.com/juhengwei/GATTCR.git
+git clone [https://github.com/juhengwei/GATTCR.git](https://github.com/fdu-wangfeilab/GATTCR.git)
 
 ### Install dependencies
 pip install -r requirements.txt
